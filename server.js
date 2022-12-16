@@ -6,8 +6,10 @@ const helmet = require('helmet');
 const xss = require("xss-clean");
 const rateLimit = require("express-rate-limit");
 const cors = require("cors");
+const connectDb = require('./config/db')
 
 dotenv.config({ path: "./config/config.env" });
+connectDb();
 
 const app = express();
 
@@ -16,7 +18,7 @@ if (process.env.NODE_ENV === "development") {
 	app.use(morgan("dev"));
 }
 
-// Middle≥wares
+// Middleware
 app.use(express.json());
 app.use(helmet());
 app.use(xss());
@@ -30,7 +32,7 @@ app.use(limiter);
 // Enable CORS
 app.use(cors());
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
 const server = app.listen(PORT, () => {
     console.log(`Server running in ${process.env.NODE_ENV} on port ${PORT}`);
