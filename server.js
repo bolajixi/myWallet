@@ -11,6 +11,10 @@ const connectDb = require('./config/db')
 dotenv.config({ path: "./config/config.env" });
 connectDb();
 
+// Import routes
+const index = require("./routes/index");
+const user = require("./routes/users");
+
 const app = express();
 
 // Dev logging middleware
@@ -31,6 +35,10 @@ app.use(limiter);
 
 // Enable CORS
 app.use(cors());
+
+// Mount Routers
+app.use("/api/v1/", index);
+app.use("/api/v1/users", user);
 
 const PORT = process.env.PORT || 5000;
 
