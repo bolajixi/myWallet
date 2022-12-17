@@ -25,6 +25,11 @@ const TransactionSchema = new mongoose.Schema({
         type: 'number',
         required: true,
     },
+    status: {
+      type: 'string',
+      enum: ['pending', 'successful', 'failed', 'flagged'],
+      default: 'pending',
+    },
     description: {
         type: 'string',
         required: false,
@@ -45,14 +50,14 @@ TransactionSchema.statics.aggregateBalances = async function (userId) {
     const obj = await this.aggregate([
 		{ $match: { user: userId } },
 		{ $group: {
-				_id: "$user",                           // Group all transaction by userId
-				transactionSum: { $sum: "$amount" },    // Sums up all transaction by userId
+				_id: '$user',                           // Group all transaction by userId
+				transactionSum: { $sum: '$amount' },    // Sums up all transaction by userId
 			}
         },
 	]);
 
     try {
-		await this.model("Wallet").findByIdAndUpdate(userId, {
+		await this.model('Wallet').findByIdAndUpdate(userId, {
 			balance: obj[0].transactionSum,
 		});
 	} catch (error) {
