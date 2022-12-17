@@ -19,6 +19,10 @@ router.post('/register', (req, res, next) => {
         .end();
     
     req.body = morx.validate(req.body, spec, {throw_error: true}).params;
+
+    if (req.body.pin.length < 4 || req.body.pin.length > 6) {
+        throw Error('Invalid pin number. Must be between 4 and 6 characters')
+    }
     next();
 }, controllers.users.registerUser);
 

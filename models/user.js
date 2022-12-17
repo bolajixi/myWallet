@@ -21,9 +21,7 @@ const UserSchema = new mongoose.Schema({
     },
     pin: {
         type: 'string',
-        min: 4, 
-        max: 6,
-        required: [true, "Please add a pin between 4 and 6 character length"]
+        required: [true, "Please add a pin"]
     },
     createdAt: {
 		type: Date,
