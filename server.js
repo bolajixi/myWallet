@@ -6,7 +6,10 @@ const helmet = require('helmet');
 const xss = require("xss-clean");
 const rateLimit = require("express-rate-limit");
 const cors = require("cors");
-const connectDb = require('./config/db')
+const session = require('express-session');
+const passport = require('passport');
+
+const connectDb = require('./config/db');
 
 dotenv.config({ path: "./config/config.env" });
 connectDb();
@@ -21,8 +24,21 @@ const app = express();
 if (process.env.NODE_ENV === "development") {
 	app.use(morgan("dev"));
 }
+// Passport config
+require("./config/passport")(passport);
+
 
 // Middleware
+app.use(session({
+        secret: 'secret',
+        resave: true,
+        saveUninitialized: true
+    })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use(express.json());
 app.use(helmet());
 app.use(xss());

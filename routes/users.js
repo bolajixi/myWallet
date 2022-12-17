@@ -1,16 +1,27 @@
 const express = require('express');
 const router = express.Router();
 const morx = require('morx');
+const passport = require('passport');
 
-const controllers = require('../controllers') 
+const ErrorResponse = require("../utils/errorResponse");
+const controllers = require('../controllers');
 
-//Login user
-router.get('/login', (req, res, next) => {
-    res.send('Login');
+// Login user
+router.post('/login', checkNotAuthenticated,  passport.authenticate('local'), function(req, res){
+
+    res.status(201).json({
+        success: true,
+        user: req.user,
+    });
 });
 
+// Logout user
+router.get('/logout', checkAuthenticated, (req, res, next) => {
+    next();
+}, controllers.users.logout)
+
 // Register a new user
-router.post('/register', (req, res, next) => {
+router.post('/register', checkNotAuthenticated, (req, res, next) => {
     var spec = morx.spec()
         .build('firstname', 'required:true, map:firstName')
         .build('lastname', 'required:true, map:lastName')
@@ -25,5 +36,20 @@ router.post('/register', (req, res, next) => {
     }
     next();
 }, controllers.users.registerUser);
+
+function checkAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) {
+        return next()
+    }
+
+    throw new ErrorResponse(`Please authenticate yourself via the route - /api/v1/login.`, 400)
+}
+
+function checkNotAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) {
+        throw new ErrorResponse(`User [${req.body.email}] is already authenticated.`, 400)
+    }
+    next()
+}
 
 module.exports = router;

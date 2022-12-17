@@ -38,6 +38,11 @@ const encryptPin = async function (next) {
 	this.pin = await bcrypt.hash(this.pin, salt);
 };
 
+// Check if user pin is valid
+UserSchema.methods.verifyPinCode = function(pinCode) {
+    return bcrypt.compareSync(pinCode, this.pin);
+};
+
 UserSchema.pre("save", encryptPin);
 
 const User = mongoose.model('User', UserSchema);
