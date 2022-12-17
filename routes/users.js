@@ -27,6 +27,7 @@ router.post('/register', checkNotAuthenticated, (req, res, next) => {
         .build('lastname', 'required:true, map:lastName')
         .build('email', 'required:true')
         .build('pin', 'required:true')
+        .build('transactionPin', 'required:true')
         .end();
     
     req.body = morx.validate(req.body, spec, {throw_error: true}).params;
