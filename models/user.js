@@ -21,6 +21,11 @@ const UserSchema = new mongoose.Schema({
 			"Please enter a valid email address",
 		],
     },
+    phoneNumber: {
+        type: 'number',
+        max: 11,
+        required: false
+    },
     pin: {
         type: 'string',
         required: [true, "Please add a pin"]
