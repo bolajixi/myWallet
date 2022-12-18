@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const SettlementAccountSchema =  new mongoose.Schema({
     accountNumber: {
-        type: 'integer',
+        type: 'number',
         required: true
     },
     accountName: {
