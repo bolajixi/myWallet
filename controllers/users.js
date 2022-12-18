@@ -5,10 +5,10 @@ const User = require('../models/user');
 const account = require('../models/settlementAccount');
 
 exports.addSettlementAccount = asyncHandler(async (req, res, next) => {
-	const existingUser = await User.findById(req.params.userId);
+	const existingUser = await User.findById(req.user.id);
 
 	if (!existingUser) {
-		throw new ErrorResponse(`User with the ID [${req.params.userId}] does not exist.`, 404)
+		throw new ErrorResponse(`User with the ID [${req.user.id}] does not exist.`, 404)
 	}
 
     req.body.user = existingUser.id;
@@ -21,7 +21,7 @@ exports.addSettlementAccount = asyncHandler(async (req, res, next) => {
 })
 
 exports.editSettlementAccount = asyncHandler(async (req, res, next) => {
-    let settlementAccount = await account.findById({id:req.params.id});
+    let settlementAccount = await account.findById(req.params.id);
 
 	if (!settlementAccount) {
 		throw new ErrorResponse(`Settlement Account with ID [${req.params.id}] not found`, 404)
