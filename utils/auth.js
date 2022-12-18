@@ -1,3 +1,5 @@
+const ErrorResponse = require("../utils/errorResponse");
+
 module.exports = {
     checkAuthenticated: function (req, res, next) {
         if (req.isAuthenticated()) {
