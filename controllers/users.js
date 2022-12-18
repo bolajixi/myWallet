@@ -1,5 +1,7 @@
+const asyncHandler = require("../middleware/async");
+const ErrorResponse = require("../utils/errorResponse");
+
 const User = require('../models/user');
-const Wallet = require('../models/wallet');
 const account = require('../models/settlementAccount');
 
 exports.addSettlementAccount = asyncHandler(async (req, res, next) => {
