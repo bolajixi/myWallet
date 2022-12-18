@@ -15,7 +15,8 @@ dotenv.config({ path: "./config/config.env" });
 connectDb();
 
 // Import routes
-const index = require("./routes/index");
+const auth = require("./routes/auth");
+const wallet = require("./routes/wallets");
 const user = require("./routes/users");
 
 const app = express();
@@ -53,7 +54,8 @@ app.use(limiter);
 app.use(cors());
 
 // Mount Routers
-app.use("/api/v1/", index);
+app.use("/api/v1/wallet", wallet);
+app.use("/api/v1/auth", auth);
 app.use("/api/v1/users", user);
 
 const PORT = process.env.PORT || 5000;

@@ -1,30 +1,62 @@
-const asyncHandler = require("../middleware/async");
-const ErrorResponse = require("../utils/errorResponse");
 const User = require('../models/user');
 const Wallet = require('../models/wallet');
+const account = require('../models/settlementAccount');
 
-exports.registerUser = asyncHandler(async (req, res, next) => {
-    let data = req.body;
-    const existingUser = await User.findOne({email: data.email});
-    
-    if(existingUser) {
-        throw new ErrorResponse(`User [${data.email}] already exists`, 400)
-    }
+exports.addSettlementAccount = asyncHandler(async (req, res, next) => {
+	const existingUser = await User.findById(req.params.userId);
 
-    const user = await User.create(data);
+	if (!existingUser) {
+		throw new ErrorResponse(`User with the ID [${req.params.userId}] does not exist.`, 404)
+	}
 
-    // Create a wallet for this user alongside transaction pin
-    const wallet = await Wallet.create({transactionPin: req.body.transactionPin, user: user.id});
-            
-    res.status(201).json({
-        success: true,
-        data: {user, wallet},
-    });
-})
+    req.body.user = existingUser.id;
+	const settlementAccount = await account.create(req.body);
 
-exports.logout = asyncHandler(async (req, res) => {
 	res.status(200).json({
 		success: true,
+		data: settlementAccount,
+	});
+})
+
+exports.editSettlementAccount = asyncHandler(async (req, res, next) => {
+    let settlementAccount = await account.findById({id:req.params.id});
+
+	if (!settlementAccount) {
+		throw new ErrorResponse(`Settlement Account with ID [${req.params.id}] not found`, 404)
+	}
+
+	if (settlementAccount.user.toString() !== req.user.id) {
+		throw new ErrorResponse(`Not authorized to update settlement account`, 401)
+	}
+
+	settlementAccount = await account.findByIdAndUpdate(req.params.id, req.body, {
+		new: true,
+		runValidators: true,
+	});
+
+	res.status(200).json({
+		success: true,
+        message: 'Successfully updated settlement account.',
+		data: settlementAccount,
+	});
+})
+
+exports.deleteSettlementAccount = asyncHandler(async (req, res, next) => {
+    const settlementAccount = await account.findById(req.params.id);
+
+	if (!settlementAccount) {
+		throw new ErrorResponse(`Settlement Account with ID [${req.params.id}] not found`, 404)
+	}
+
+	if (settlementAccount.user.toString() !== req.user.id) {
+		throw new ErrorResponse(`Not authorized to delete settlement account`, 401)
+	}
+
+	await account.remove();
+
+	res.status(200).json({
+		success: true,
+        message: 'Settlement account deleted successfully',
 		data: {},
 	});
-});
+})
