@@ -6,13 +6,19 @@ const TransactionSchema = new mongoose.Schema({
         required: true, 
         trim: true,
     }, 
-    type: {
+    transactionType: {
         type: 'string',
         required: true,
-        enum: ['deposit', 'withdraw', 'transfer']
+        enum: ['debit', 'credit'],
+        default: 'debit'
+    },
+    paymentType: {
+        type: 'string',
+        required: true,
+        enum: ['card', 'account']
     },
     amount: {
-        type: Number,
+        type: 'number',
         default: 0,
         required: true,
     },
@@ -34,6 +40,10 @@ const TransactionSchema = new mongoose.Schema({
         type: 'string',
         required: false,
     },
+    deviceFingerprint: {
+        type: 'string',
+        required: false,
+    },
     createdAt: {
 		type: Date,
 		default: Date.now,
@@ -48,7 +58,7 @@ const TransactionSchema = new mongoose.Schema({
 // Static method to get total sum of transaction balance
 TransactionSchema.statics.aggregateBalances = async function (userId) {
     const obj = await this.aggregate([
-		{ $match: { user: userId } },
+		{ $match: { user: userId, status: 'successful' } },
 		{ $group: {
 				_id: '$user',                           // Group all transaction by userId
 				transactionSum: { $sum: '$amount' },    // Sums up all transaction by userId
@@ -70,6 +80,6 @@ TransactionSchema.post('save', function() {
     this.constructor.aggregateBalances(this.user);
 })
 
-const Transaction = mongoose.model('User', TransactionSchema);
+const Transaction = mongoose.model('Transaction', TransactionSchema);
 
 module.exports = Transaction;
