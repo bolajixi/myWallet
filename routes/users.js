@@ -1,56 +1,37 @@
 const express = require('express');
-const router = express.Router();
 const morx = require('morx');
-const passport = require('passport');
 
-const ErrorResponse = require("../utils/errorResponse");
+const auth = require("../utils/auth");
 const controllers = require('../controllers');
 
-// Login user
-router.post('/login', checkNotAuthenticated,  passport.authenticate('local'), function(req, res){
+const router = express.Router();
 
-    res.status(201).json({
-        success: true,
-        user: req.user,
-    });
-});
+var spec = morx.spec()
+    .build('firstname', 'required:true, map:firstName')
+    .build('lastname', 'required:true, map:lastName')
+    .build('email', 'required:true')
+    .build('pin', 'required:true')
+    .build('transactionPin', 'required:true')
+    .end();
 
-// Logout user
-router.get('/logout', checkAuthenticated, (req, res, next) => {
+// Get profile for current logged in user
+router.get('/profile', auth.checkAuthenticated, (req, res) => {
     next();
-}, controllers.users.logout)
+}, controllers.users.addSettlementAccount)
 
-// Register a new user
-router.post('/register', checkNotAuthenticated, (req, res, next) => {
-    var spec = morx.spec()
-        .build('firstname', 'required:true, map:firstName')
-        .build('lastname', 'required:true, map:lastName')
-        .build('email', 'required:true')
-        .build('pin', 'required:true')
-        .build('transactionPin', 'required:true')
-        .end();
-    
-    req.body = morx.validate(req.body, spec, {throw_error: true}).params;
-
-    if (req.body.pin.length < 4 || req.body.pin.length > 6) {
-        throw Error('Invalid pin number. Must be between 4 and 6 characters')
-    }
+// Create a new settlement account
+router.post('/user/:userId/settlementAccount', auth.checkAuthenticated, (req, res) => {
     next();
-}, controllers.users.registerUser);
+}, controllers.users.addSettlementAccount)
 
-function checkAuthenticated(req, res, next) {
-    if (req.isAuthenticated()) {
-        return next()
-    }
+// Edit an existing settlement account
+router.patch('/user/:userId/settlementAccount/:id', auth.checkAuthenticated, (req, res) => {
+    next();
+}, controllers.users.editSettlementAccount)
 
-    throw new ErrorResponse(`Please authenticate yourself via the route - /api/v1/login.`, 400)
-}
-
-function checkNotAuthenticated(req, res, next) {
-    if (req.isAuthenticated()) {
-        throw new ErrorResponse(`User [${req.body.email}] is already authenticated.`, 400)
-    }
-    next()
-}
+// Delete an existing settlement account
+router.delete('/user/:userId/settlementAccount/:id', auth.checkAuthenticated, (req, res) => {
+    next();
+}, controllers.users.deleteSettlementAccount)
 
 module.exports = router;
