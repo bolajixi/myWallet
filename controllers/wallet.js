@@ -98,7 +98,7 @@ exports.deposit = asyncHandler(async (req, res, next) => {
         email: req.body.email || req.user.email,
         fullname: req.body.fullName,
         tx_ref: generateReference('transaction'),
-        redirect_url: process.env.APP_BASE_URL + '/pay/redirect',
+        redirect_url: `${process.env.APP_BASE_URL}/pay/redirect`,
         enckey: process.env.FLUTTERWAVE_ENCRYPTION_KEY,
         pin: req.body.pin
     }
@@ -154,7 +154,7 @@ exports.transfer = asyncHandler(async (req, res, next) => {
         narration: req.body.description || `Transfer from [${req.user.firstName} ${req.user.lastName}]`,
         currency: req.body.currency || 'NGN',
         reference: generateReference('transfer'),
-        callback_url: `${process.env.BASE_URL}/api/v1/wallet/transfer/verify`
+        callback_url: `${process.env.APP_BASE_URL}/api/v1/wallet/transfer/verify`
     }
 
     const response = await flutterwave.transfer(payload);
