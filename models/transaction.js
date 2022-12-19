@@ -60,7 +60,7 @@ const TransactionSchema = new mongoose.Schema({
 })
 
 // Static method to get total sum of transaction balance
-TransactionSchema.statics.aggregateBalances = async function (userId) {
+TransactionSchema.statics.sumBalances = async function (userId) {
     const obj = await this.aggregate([
 		{ $match: { user: userId, status: 'successful' } },
 		{ $group: {
@@ -71,7 +71,7 @@ TransactionSchema.statics.aggregateBalances = async function (userId) {
 	]);
 
     try {
-		await this.model('Wallet').findByIdAndUpdate(userId, {
+		await this.model("Wallet").findOneAndUpdate({ user: userId }, {
 			balance: obj[0].transactionSum,
 		});
 	} catch (error) {
@@ -80,8 +80,8 @@ TransactionSchema.statics.aggregateBalances = async function (userId) {
 }
 
 // Aggregate transaction balance
-TransactionSchema.post('save', function() {
-    this.constructor.aggregateBalances(this.user);
+TransactionSchema.post("save'", function() {
+    this.constructor.sumBalances(this.user);
 })
 
 const Transaction = mongoose.model('Transaction', TransactionSchema);
