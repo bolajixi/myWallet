@@ -10,6 +10,7 @@ const session = require('express-session');
 const passport = require('passport');
 
 const connectDb = require('./config/db');
+const errorHandler = require('./middleware/errorHandler')
 
 dotenv.config({ path: "./config/config.env" });
 connectDb();
@@ -57,6 +58,8 @@ app.use(cors());
 app.use("/api/v1/wallet", wallet);
 app.use("/api/v1/auth", auth);
 app.use("/api/v1/users", user);
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
