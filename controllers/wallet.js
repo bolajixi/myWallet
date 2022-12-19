@@ -8,10 +8,7 @@ const Wallet = require('../models/wallet');
 const flutterwave = require('../services/flutterwave');
 
 exports.getBalance = asyncHandler(async (req, res, next) => {
-    const wallet = await Wallet.findOne({reference: req.params.ref}).populate({
-		path: "bootcamp",
-		select: "balance",
-	});
+    const wallet = await Wallet.findOne({user: req.user.id}).select("-transactionPin-createdAt");
 
 	if (!wallet) {
 		throw new ErrorResponse(`You don't have a wallet. Please contact the administrator`, 404)
@@ -24,10 +21,7 @@ exports.getBalance = asyncHandler(async (req, res, next) => {
 })
 
 exports.getTransaction = asyncHandler(async (req, res, next) => {
-    const transaction = await Transaction.findOne({reference: req.params.ref}).populate({
-		path: "bootcamp",
-		// select: "name description",
-	});
+    const transaction = await Transaction.findOne({reference: req.params.ref});
 
 	if (!transaction) {
 		throw new ErrorResponse(`No transaction with the ref [${req.params.ref}]`, 404)
@@ -40,10 +34,7 @@ exports.getTransaction = asyncHandler(async (req, res, next) => {
 })
 
 exports.getTransactions = asyncHandler(async (req, res, next) => {
-    const transactions = await Transaction.find({user: req.user.id}).populate({
-		path: "bootcamp",
-		// select: "name description",
-	});
+    const transactions = await Transaction.find({user: req.user.id});
 
 	if (!transactions) {
 		throw new ErrorResponse(`You don't have any transactions`, 404)

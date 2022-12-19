@@ -6,19 +6,19 @@ const controllers = require('../controllers');
 
 const router = express.Router();
 
-router.get('/', (req, res) => {
+router.get('/', (req, res, next)=> {
     res.send('Homepage');
 })
 
-router.get('/balance', auth.checkAuthenticated, (req, res) => {
+router.get('/balance', auth.checkAuthenticated, (req, res, next)=> {
     next();
 }, controllers.wallet.getBalance)
 
-router.get('/transactions/:ref', auth.checkAuthenticated, (req, res) => {
+router.get('/transactions/:ref', auth.checkAuthenticated, (req, res, next)=> {
     next();
 }, controllers.wallet.getTransaction)
 
-router.get('/transactions', auth.checkAuthenticated, (req, res) => {
+router.get('/transactions', auth.checkAuthenticated, (req, res, next)=> {
     next();
 }, controllers.wallet.getTransactions)
 
