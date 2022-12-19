@@ -27,36 +27,56 @@ module.exports = {
                 reCallCharge = await flw.Charge.card(chargePayload)
             }
 
-            // Store reCallCharge in session
             return reCallCharge
         } catch (error) {
             throw new ErrorResponse(error.message,400)
         }
     },
 
-    authorizeCardPayment: async (reCallCharge) => {
+    authorizeCardPayment: async (payload) => {
         // Add the OTP to authorize the transaction
         let status, transaction;
+        let updateQuery = { $set: { 
+            reference: '', 
+            gatewayReference: '',
+            paymentType: '',
+            amount: '',
+            status: '',
+            description: '',
+            deviceFingerprint: '',
+            currency: '',
+            user: '',
+        }};
 
         const response = await flw.Charge.validate({
-            otp: req.body.otp,
-            flw_ref: reCallCharge.data.flw_ref
+            otp: payload.otp,
+            flw_ref: payload.flw_ref
         })
+
+        updateQuery.$set.reference = response.data.tx_ref
+        updateQuery.$set.gatewayReference = response.data.flw_ref;
+        updateQuery.$set.paymentType = response.data.payment_type;
+        updateQuery.$set.amount = response.data.amount;
+        updateQuery.$set.status = response.data.status;
+        updateQuery.$set.description = response.data.narration;
+        updateQuery.$set.deviceFingerprint = response.data.device_fingerprint;
+        updateQuery.$set.currency = response.data.currency;
+        updateQuery.$set.user = payload.userId;
 
         if (response.data.status === 'successful' || response.data.status === 'pending') {
             // Verify the payment
             const transactionId = response.data.id;
-            transaction = flw.Transaction.verify({ id: transactionId });
+            transaction = await flw.Transaction.verify({ id: transactionId });
 
-            status = transaction.data.status;
+            const query = { gatewayReference: transaction.data.flw_ref };
 
-            transactions = await Transaction.createOrUpdate({ transaction: transaction}); // Update the transaction
-            return transactions;
+            let upsertTransactions = await Transaction.updateOne(query, updateQuery, {upsert: true});
+            return transaction;
         }
         
-        transaction.status = 'failed';
-        const transactions = await Transaction.createOrUpdate(transaction);
-        return transactions;
+        updateQuery.$set.status = 'failed';
+        let upsertTransactions = await Transaction.updateOne(query, updateQuery, {upsert: true});
+        return response;
     },
 
     /*****  Transfers  *****/

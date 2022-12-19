@@ -6,6 +6,11 @@ const TransactionSchema = new mongoose.Schema({
         required: true, 
         trim: true,
     }, 
+    gatewayReference: {
+        type: 'string',
+        required: true, 
+        trim: true,
+    }, 
     transactionType: {
         type: 'string',
         required: true,
@@ -22,14 +27,18 @@ const TransactionSchema = new mongoose.Schema({
         default: 0,
         required: true,
     },
+    currency: {
+        type: 'string',
+        default: 'NGN'
+    },
     sender: {
         type: 'number',
-        required: true,
+        required: false,
         ref: 'SettlementAccount',
     },
     recipient: {
         type: 'number',
-        required: true,
+        required: false,
     },
     status: {
       type: 'string',

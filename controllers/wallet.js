@@ -82,6 +82,9 @@ exports.deposit = asyncHandler(async (req, res, next) => {
 
     const response = await flutterwave.chargeCard(payload);
 
+    // Store reCallCharge in session
+    req.session.reCallCharge = response
+
     res.status(200).json({
 		success: true,
 		data: response,
@@ -90,7 +93,8 @@ exports.deposit = asyncHandler(async (req, res, next) => {
 
 exports.authorize = asyncHandler(async (req, res, next) => {
     req.body.flw_ref = req.session.reCallCharge.data.flw_ref || req.body.flw_ref
-
+    req.body.userId = req.user.id
+    
     const response = await flutterwave.authorizeCardPayment(req.body);  
 
     res.status(200).json({
