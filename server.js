@@ -59,6 +59,7 @@ app.use("/api/v1/wallet", wallet);
 app.use("/api/v1/auth", auth);
 app.use("/api/v1/users", user);
 
+// Global error handler for API errors
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;

@@ -7,7 +7,6 @@ const ErrorResponse = require('../utils/errorResponse')
 module.exports = {
     /*****  Collections  *****/
     chargeCard: async (payload) => {
-        // Pay directly to someones account
         try {
             const response = await flw.Charge.card(payload)
             let reCallCharge
@@ -80,7 +79,14 @@ module.exports = {
     },
 
     /*****  Transfers  *****/
-    transfers: () => {
-        // transfer directly to another customer using this app
+    transfer: async (payload) => {
+        // transfer directly to another customer using myWallet
+        try {
+            const response = await flw.Transfer.initiate(payload)
+            
+            return response;
+        } catch (error) {
+            throw new ErrorResponse(error.message,400)
+        }
     },
 }

@@ -1,15 +1,16 @@
-const asyncHandler = require("../middleware/async");
-const ErrorResponse = require("../utils/errorResponse");
+const asyncHandler = require('../middleware/async');
+const ErrorResponse = require('../utils/errorResponse');
 
 const User = require('../models/user');
 const Transaction = require('../models/transaction');
 const Wallet = require('../models/wallet');
 
 const flutterwave = require('../services/flutterwave');
+const bcrypt = require("bcryptjs");
 
 exports.getWallet = asyncHandler(async (req, res, next) => {
     const wallet = await Wallet.findOne({user: req.user.id})
-        .select("-transactionPin")
+        .select('-transactionPin')
         .populate({
             path: 'user',
             select: ['firstName', 'lastName', 'email']
@@ -74,7 +75,7 @@ exports.deposit = asyncHandler(async (req, res, next) => {
         amount: req.body.amount,
         email: req.body.email || req.user.email,
         fullname: req.body.fullName,
-        tx_ref: generateTransactionReference(),
+        tx_ref: generateReference('transaction'),
         redirect_url: process.env.APP_BASE_URL + '/pay/redirect',
         enckey: process.env.FLUTTERWAVE_ENCRYPTION_KEY,
         pin: req.body.pin
@@ -94,7 +95,7 @@ exports.deposit = asyncHandler(async (req, res, next) => {
 exports.authorize = asyncHandler(async (req, res, next) => {
     req.body.flw_ref = req.session.reCallCharge.data.flw_ref || req.body.flw_ref
     req.body.userId = req.user.id
-    
+
     const response = await flutterwave.authorizeCardPayment(req.body);  
 
     res.status(200).json({
@@ -104,9 +105,60 @@ exports.authorize = asyncHandler(async (req, res, next) => {
 	});    
 })
 
-exports.transfer = asyncHandler(async (req, res, next) => {})
+exports.transfer = asyncHandler(async (req, res, next) => {
+    // Validate transaction pin
+    const wallet = await Wallet.findOne({user: req.user.id})
+    const validPin = bcrypt.compareSync(req.body.transactionPin, wallet.transactionPin);
+
+    if(!validPin) throw new Error('Invalid transaction pin');
+    if(wallet.balance < req.boy.amount) { throw new Error("You don't have enough funds"); }
+    if((wallet.balance - req.boy.amount) <= 100) { throw new Error("Expected minimum amount in wallet to be NGN100"); }
+
+    const payload = {
+        account_bank: req.body.accountBank,
+        account_number: req.body.accountNumber,
+        amount: req.body.amount,
+        narration: req.body.description || `Transfer from [${req.user.firstName} ${req.user.lastName}]`,
+        currency: req.body.currency || 'NGN',
+        reference: generateReference('transfer'),
+    }
+
+    const response = await flutterwave.transfer(payload);
+
+    // Mask recipient account number
+    response.data.account_number = response.data.account_number.replace(/(?<=.{4})./g, "*");
+
+    console.log(response);
+    let newTransaction = {
+        reference: response.data.reference,
+        gatewayReference: response.data.flw_ref || 'N/A',
+        transactionType: 'debit',
+        paymentType: 'account',
+        amount: response.data.amount,
+        currency: response.data.currency,
+        recipient: response.data.account_number,
+        description: response.data.narration,
+        user: req.user.id
+    }
+
+    if(response.data.status === 'NEW') {
+        newTransaction.status = 'pending'
+    }
+    else if(response.data.status === 'FAILED') {
+        newTransaction.status = 'failed'
+    }
+    
+    let transaction = await Transaction.create(newTransaction);
+
+    res.status(200).json({
+		success: true,
+        message: 'Transfer initiated',
+		data: transaction,
+	});
+})
 
 
-let generateTransactionReference = () => {
-    return `myWALLT-TRANS-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+let generateReference = (type) => {
+    if(type === 'transaction ') return `myWALLT-TRANS-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+    else if(type === 'transfer') return `myWALLT-TRANSF-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 }

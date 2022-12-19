@@ -31,13 +31,8 @@ const TransactionSchema = new mongoose.Schema({
         type: 'string',
         default: 'NGN'
     },
-    sender: {
-        type: 'number',
-        required: false,
-        ref: 'SettlementAccount',
-    },
     recipient: {
-        type: 'number',
+        type: 'string',
         required: false,
     },
     status: {
