@@ -111,8 +111,8 @@ exports.transfer = asyncHandler(async (req, res, next) => {
     const validPin = bcrypt.compareSync(req.body.transactionPin, wallet.transactionPin);
 
     if(!validPin) throw new Error('Invalid transaction pin');
-    if(wallet.balance < req.boy.amount) { throw new Error("You don't have enough funds"); }
-    if((wallet.balance - req.boy.amount) <= 100) { throw new Error("Expected minimum amount in wallet to be NGN100"); }
+    if(wallet.balance < req.body.amount) { throw new Error("You don't have enough funds"); }
+    if((wallet.balance - req.body.amount) <= 100) { throw new Error("Expected minimum amount in wallet to be NGN100"); }
 
     const payload = {
         account_bank: req.body.accountBank,
@@ -159,6 +159,6 @@ exports.transfer = asyncHandler(async (req, res, next) => {
 
 
 let generateReference = (type) => {
-    if(type === 'transaction ') return `myWALLT-TRANS-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+    if(type === 'transaction') return `myWALLT-TRANS-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
     else if(type === 'transfer') return `myWALLT-TRANSF-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 }
