@@ -22,6 +22,21 @@ router.get('/transactions', auth.checkAuthenticated, (req, res, next)=> {
     next();
 }, controllers.wallet.getTransactions)
 
+router.post('/changePin', auth.checkAuthenticated, (req, res, next)=> {
+    var spec = morx.spec()
+        .build('oldPin', 'required:true')
+        .build('newPin', 'required:true')
+        .end();
+
+    req.body = morx.validate(req.body, spec, {throw_error: true}).params;
+
+    if (req.body.oldPin.length !== 4 || req.body.newPin.length !== 4) {
+        throw Error('Invalid PIN. Please enter a 4-digit PIN, e.g 1111')
+    }
+
+    next();
+}, controllers.wallet.changePin)
+
 router.post('/deposit', auth.checkAuthenticated, (req, res, next)=> {
     var spec = morx.spec()
         .build('cardNumber', 'required:true')

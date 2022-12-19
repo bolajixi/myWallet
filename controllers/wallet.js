@@ -65,6 +65,26 @@ exports.getTransactions = asyncHandler(async (req, res, next) => {
 	});
 })
 
+exports.changePin = asyncHandler(async (req, res, next) => {
+    // Validate transaction pin
+    const wallet = await Wallet.findOne({user: req.user.id})
+    if(!wallet) throw new Error("There's no wallet associated with this account. Please contact your administrator.");
+
+    const validPin = bcrypt.compareSync(req.body.oldPin, wallet.transactionPin);
+    if(!validPin) throw new Error('The old transaction pin is invalid');
+
+    const query = { user: req.user.id};
+    const updateQuery = { transactionPin: req.body.newPin };
+
+	let wallets = await Wallet.findOneAndUpdate(query, updateQuery);
+
+	res.status(200).json({
+		success: true,
+        message: 'Successfully updated wallet transaction pin.',
+        wallets
+	});
+})
+
 exports.deposit = asyncHandler(async (req, res, next) => {
     let payload = {
         card_number: req.body.cardNumber,
