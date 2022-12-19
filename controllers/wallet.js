@@ -73,6 +73,8 @@ exports.changePin = asyncHandler(async (req, res, next) => {
     const validPin = bcrypt.compareSync(req.body.oldPin, wallet.transactionPin);
     if(!validPin) throw new Error('The old transaction pin is invalid');
 
+    const salt = await bcrypt.genSalt(10);
+	req.body.newPin = await bcrypt.hash(req.body.newPin, salt);
     const query = { user: req.user.id};
     const updateQuery = { transactionPin: req.body.newPin };
 
