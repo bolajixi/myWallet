@@ -133,6 +133,17 @@ exports.transfer = asyncHandler(async (req, res, next) => {
     const validPin = bcrypt.compareSync(req.body.transactionPin, wallet.transactionPin);
 
     if(!validPin) throw new Error('Invalid transaction pin');
+
+    // Verify account details
+    const details = {
+        account_number: req.body.accountNumber,
+        account_bank: req.body.accountBank
+    };
+    flw.Misc.verify_Account(details)
+        .then(response => {
+            if(response.status === 'error') throw new Error(response.message)
+        });
+
     if(wallet.balance < req.body.amount) { throw new Error("You don't have enough funds"); }
     if((wallet.balance - req.body.amount) <= 100) { throw new Error("Expected minimum amount in wallet to be NGN100"); }
 
@@ -143,6 +154,7 @@ exports.transfer = asyncHandler(async (req, res, next) => {
         narration: req.body.description || `Transfer from [${req.user.firstName} ${req.user.lastName}]`,
         currency: req.body.currency || 'NGN',
         reference: generateReference('transfer'),
+        callback_url: `${process.env.BASE_URL}/api/v1/wallet/transfer/verify`
     }
 
     const response = await flutterwave.transfer(payload);
@@ -177,6 +189,29 @@ exports.transfer = asyncHandler(async (req, res, next) => {
         message: 'Transfer initiated',
 		data: transaction,
 	});
+})
+
+// Simple transfer verification webhook
+exports.verify = asyncHandler(async (req, res, next) => {
+    let transactionStatus = req.body.data.data.status
+    let transactionReference = req.body.data.data.reference
+
+    const query = { reference: transactionReference };
+    let updateQuery 
+
+    if(transactionStatus === 'SUCCESSFUL') {
+        updateQuery = { status: 'successful' };
+    }
+    else if(transactionStatus === 'FAILED') {
+        updateQuery = { status: 'failed' };
+    }
+    
+    let transaction = await Transaction.findOneAndUpdate(query, updateQuery)
+
+    res.status(200).json({
+		success: true,
+        transaction
+	});    
 })
 
 

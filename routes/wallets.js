@@ -89,4 +89,8 @@ router.post('/transfer', auth.checkAuthenticated, (req, res, next)=> {
     next();
 }, controllers.wallet.transfer)
 
+router.post('/transfer/verify', auth.checkAuthenticated, (req, res, next)=> {
+    next();
+}, controllers.wallet.verify)
+
 module.exports = router;
