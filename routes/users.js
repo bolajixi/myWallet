@@ -17,7 +17,7 @@ var spec = morx.spec()
 // Get profile for current logged in user
 router.get('/profile', auth.checkAuthenticated, (req, res, next)=> {
     next();
-}, controllers.users.addSettlementAccount)
+}, controllers.users.getProfile)
 
 // Create a new settlement account
 router.post('/settlementAccount', auth.checkAuthenticated, (req, res, next)=> {

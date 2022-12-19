@@ -4,6 +4,19 @@ const ErrorResponse = require("../utils/errorResponse");
 const User = require('../models/user');
 const account = require('../models/settlementAccount');
 
+exports.getProfile = asyncHandler(async (req, res, next) => {
+	const user = await User.findById(req.user.id).select("-pin");
+
+	if (!user) {
+		throw new ErrorResponse(`User with the ID [${req.user.id}] does not exist.`, 404)
+	}
+
+	res.status(200).json({
+		success: true,
+		data: user,
+	});
+})
+
 exports.addSettlementAccount = asyncHandler(async (req, res, next) => {
 	const existingUser = await User.findById(req.user.id);
 
