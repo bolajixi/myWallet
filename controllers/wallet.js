@@ -7,8 +7,26 @@ const Wallet = require('../models/wallet');
 
 const flutterwave = require('../services/flutterwave');
 
+exports.getWallet = asyncHandler(async (req, res, next) => {
+    const wallet = await Wallet.findOne({user: req.user.id})
+        .select("-transactionPin")
+        .populate({
+            path: 'user',
+            select: ['firstName', 'lastName', 'email']
+        });
+
+	if (!wallet) {
+		throw new ErrorResponse(`You don't have a wallet. Please contact the administrator`, 404)
+	}
+
+	res.status(200).json({
+		success: true,
+		data: wallet,
+	});
+})
+
 exports.getBalance = asyncHandler(async (req, res, next) => {
-    const wallet = await Wallet.findOne({user: req.user.id}).select("-transactionPin-createdAt");
+    const wallet = await Wallet.findOne({user: req.user.id});
 
 	if (!wallet) {
 		throw new ErrorResponse(`You don't have a wallet. Please contact the administrator`, 404)

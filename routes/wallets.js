@@ -6,9 +6,9 @@ const controllers = require('../controllers');
 
 const router = express.Router();
 
-router.get('/', (req, res, next)=> {
-    res.send('Homepage');
-})
+router.get('/', auth.checkAuthenticated, (req, res, next)=> {
+    next();
+}, controllers.wallet.getWallet)
 
 router.get('/balance', auth.checkAuthenticated, (req, res, next)=> {
     next();
